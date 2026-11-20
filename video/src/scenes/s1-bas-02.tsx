@@ -1,29 +1,17 @@
-// Sample episode: "Your first prompt"
+// S1 · BAS · 02: "Your first prompt"
 import React from "react";
-import { Badge, Big, episode, Fact, Headline, Note, Pill, Prompt, Row, Step } from "../Brand";
+import { Big, episode, Fact, Headline, Note, Pill, Prompt, Row, Step } from "../Brand";
 
 const ep = episode({
-  slug: "sample-02",
-  code: "SAMPLE · 02",
-  // episodes/sample-02/durations.json (seconds, gap included)
-  durations: {"hook": 3.34, "s2": 5.18, "s3": 5.2, "s4": 5.33, "s5": 5.75, "s6": 3.51, "end": 2.06},
-  next: { code: "S1 · BAS · 01", title: "Who built Claude?" },
+  slug: "s1-bas-02",
+  section: "BAS",
+  number: 2,
+  title: "Your first prompt",
+  // episodes/s1-bas-02/durations.json (seconds, gap included)
+  durations: {"intro": 3.34, "s2": 5.18, "s3": 5.2, "s4": 5.33, "s5": 5.75, "s6": 3.51, "outro": 6.82, "end": 3.41},
+  // "Do you know why your first prompt to Claude usually falls flat?"
+  intro: { question: "why your first prompt falls flat?" },
   views: {
-    // "Do you know why your first prompt to Claude usually falls flat?"
-    hook: (
-      <>
-        <Pill>Do you know...</Pill>
-        <Headline size={140} text="why your first prompt falls flat?" at={0.3} over={1.9} />
-        <Row gap={70} justify="center">
-          <Badge at={0.8} size={280}>
-            ?
-          </Badge>
-          <Badge at={1.0} size={280} style={{ marginTop: 110 }}>
-            ?
-          </Badge>
-        </Row>
-      </>
-    ),
     // "Most people type a few words, like, write an email. Then Claude has to guess the rest."
     s2: (
       <>
@@ -88,7 +76,19 @@ const ep = episode({
       </>
     ),
   },
+  // "Curious what happens when Claude knows your situation? Next time, one extra line makes every answer fit you."
+  outro: {
+    hint: "What if Claude knew your situation?",
+    peek: (
+      <>
+        <Prompt label="One extra line" text="A little about me first..." at={3.2} over={1.2} />
+        <Pill at={4.9} align="end" tilt={-5}>
+          Answers that fit you
+        </Pill>
+      </>
+    ),
+  },
 });
 
-export const durationInFrames = ep.durationInFrames;
+export const { durationInFrames, Thumbnail } = ep;
 export default ep.Component;

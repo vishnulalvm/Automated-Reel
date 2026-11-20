@@ -2,6 +2,9 @@
 // off-white dotted paper, soft drifting circles, a header with the episode code,
 // top-aligned content, ink-outlined cards with hard shadows, tilted pills,
 // headlines that appear word by word, and a logo end card.
+//
+// Everything that may change (brand name, logo, colours, sections, intro and outro
+// wording) comes from reel.config.json at the project root, not from this file.
 import React from "react";
 import {
   AbsoluteFill,
@@ -17,6 +20,8 @@ import {
 } from "remotion";
 import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
 import { loadFont as loadInter } from "@remotion/google-fonts/Inter";
+import cfg from "../../reel.config.json";
+import { ASSETS } from "./assets.gen";
 
 const display = loadSpaceGrotesk("normal", { weights: ["500", "700"], subsets: ["latin"] });
 const body = loadInter("normal", { weights: ["400", "600", "700"], subsets: ["latin"] });
@@ -25,17 +30,14 @@ export const FPS = 30;
 export const WIDTH = 1080;
 export const HEIGHT = 1920;
 
-export const COLORS = {
-  paper: "#F6F2EA",
-  coral: "#E8674A",
-  ink: "#14161C",
-  green: "#1F9D6B",
-  white: "#FFFFFF",
-  // tints of the brand colours, for card fills, pills and background circles
-  coralTint: "#F1CBBF",
-  greenTint: "#D6E6DA",
-  gray: "#5A5C63",
-} as const;
+export const CONFIG = cfg;
+export const COLORS = { ...cfg.brand.colors, white: "#FFFFFF" };
+
+/** "#E8674A" + 0.15 -> "rgba(232,103,74,0.15)" */
+const rgba = (hex: string, alpha: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${alpha})`;
+};
 
 export const FONTS = { display: display.fontFamily, body: body.fontFamily } as const;
 
@@ -685,7 +687,7 @@ export const IconChip: React.FC<{ name: IconName; at?: number; size?: number }> 
 const Dots: React.FC = () => (
   <AbsoluteFill
     style={{
-      backgroundImage: "radial-gradient(circle, rgba(20,22,28,0.135) 2.9px, transparent 3.5px)",
+      backgroundImage: `radial-gradient(circle, ${rgba(COLORS.ink, 0.135)} 2.9px, transparent 3.5px)`,
       backgroundSize: "48px 48px",
       backgroundPosition: "10.5px 0.5px",
     }}
@@ -716,7 +718,7 @@ const Blobs: React.FC<{ seed: string }> = ({ seed }) => {
               width: size,
               height: size,
               borderRadius: "50%",
-              backgroundColor: i % 2 ? "rgba(31,157,107,0.088)" : "rgba(232,103,74,0.145)",
+              backgroundColor: i % 2 ? rgba(COLORS.green, 0.088) : rgba(COLORS.coral, 0.145),
               scale: interpolate(frame, [0, 12], [0.9, 1], CLAMP),
             }}
           />
@@ -758,6 +760,14 @@ const LogoMark: React.FC<{ size: number }> = ({ size }) => (
   </div>
 );
 
+/** The logo file named in reel.config.json if it is in the Assets folder, otherwise the drawn mark. */
+const Logo: React.FC<{ size: number }> = ({ size }) =>
+  ASSETS.includes(cfg.brand.logo) ? (
+    <Img src={staticFile(`assets/${cfg.brand.logo}`)} style={{ width: size, height: size, objectFit: "contain" }} />
+  ) : (
+    <LogoMark size={size} />
+  );
+
 /** Channel name on the left, episode code pill on the right. On every scene but the end card. */
 const Header: React.FC<{ code: string }> = ({ code }) => (
   <div
@@ -772,8 +782,8 @@ const Header: React.FC<{ code: string }> = ({ code }) => (
     }}
   >
     <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-      <LogoMark size={36} />
-      <div style={{ fontFamily: FONTS.display, fontWeight: 700, fontSize: 34, color: COLORS.ink }}>Claude4All</div>
+      <Logo size={36} />
+      <div style={{ fontFamily: FONTS.display, fontWeight: 700, fontSize: 34, color: COLORS.ink }}>{cfg.brand.name}</div>
     </div>
     <div
       style={{
@@ -812,14 +822,81 @@ const Scene: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-/** Closing card: logo, channel name, what's next, Follow and Save. */
-const EndCard: React.FC<{ next?: { code: string; title: string } }> = ({ next }) => (
-  <AbsoluteFill style={{ alignItems: "center", paddingTop: 420, gap: 30, display: "flex", flexDirection: "column" }}>
+// ───────────────────────── series ─────────────────────────
+
+const section = (key: string) => {
+  const found = cfg.series.sections.find((x) => x.key === key);
+  if (!found) throw new Error(`Unknown section "${key}". Sections are set in reel.config.json.`);
+  return found;
+};
+
+/** "S1 · BAS · 02" */
+export const episodeCode = (key: string, number: number) =>
+  `S${section(key).season} · ${key} · ${String(number).padStart(2, "0")}`;
+
+const sectionLabel = (key: string, number: number) => `${section(key).name} · Episode ${String(number).padStart(2, "0")}`;
+
+/** A question headline gets smaller as it gets longer, so it always fits in three or four lines. */
+const questionSize = (text: string) => (text.length <= 22 ? 150 : text.length <= 34 ? 132 : text.length <= 48 ? 112 : 96);
+
+// ───────────────────────── intro, outro, thumbnail ─────────────────────────
+
+/** Opening scene, the same in every episode: the question pill, the question, and the section tag. */
+const Intro: React.FC<{ question: string; label: string; tone: Tone; art?: React.ReactNode }> = ({
+  question,
+  label,
+  tone,
+  art,
+}) => (
+  <>
+    <Pill>{cfg.intro.pill}</Pill>
+    <Headline size={questionSize(question)} text={question} at={0.3} over={Math.min(2.2, question.split(" ").length * 0.3)} />
+    {art ?? (
+      <Row gap={70} justify="center">
+        <Badge at={0.8} size={280}>
+          ?
+        </Badge>
+        <Badge at={1.0} size={280} style={{ marginTop: 110 }}>
+          ?
+        </Badge>
+      </Row>
+    )}
+    <Pill at={1.5} tone={tone} tilt={0} size={34}>
+      {label}
+    </Pill>
+  </>
+);
+
+/** Outro part 1, the same in every episode: a short intro of the NEXT video. Its code in the header,
+ *  the "curious" pill, the hint as a question, a peek at what is coming, and the next episode's tag. */
+const Teaser: React.FC<{ hint: string; label: string; tone: Tone; peek?: React.ReactNode }> = ({ hint, label, tone, peek }) => (
+  <>
+    <Pill>{cfg.outro.pill}</Pill>
+    <Headline size={questionSize(hint)} text={hint} at={0.3} over={Math.min(2.2, hint.split(" ").length * 0.3)} />
+    {peek ?? (
+      <Row gap={70} justify="center">
+        <Badge at={0.9} size={240}>
+          ?
+        </Badge>
+        <Badge at={1.1} size={240} style={{ marginTop: 90 }}>
+          →
+        </Badge>
+      </Row>
+    )}
+    <Pill at={1.6} tone={tone} tilt={0} size={34}>
+      {cfg.outro.nextLabel} · {label}
+    </Pill>
+  </>
+);
+
+/** Outro part 2, the last frame of every episode: logo, channel name, the follow and save buttons. */
+const End: React.FC = () => (
+  <AbsoluteFill style={{ alignItems: "center", paddingTop: 470, gap: 36, display: "flex", flexDirection: "column" }}>
     <Enter kind="pop">
       <div
         style={{
-          width: 320,
-          height: 320,
+          width: 340,
+          height: 340,
           borderRadius: "50%",
           backgroundColor: COLORS.coralTint,
           display: "flex",
@@ -827,51 +904,98 @@ const EndCard: React.FC<{ next?: { code: string; title: string } }> = ({ next })
           justifyContent: "center",
         }}
       >
-        <LogoMark size={200} />
+        <Logo size={215} />
       </div>
     </Enter>
-    <Enter at={0.2}>
-      <Headline size={136}>Claude4All</Headline>
+    <Enter at={0.15}>
+      <Headline size={132}>{cfg.brand.name}</Headline>
     </Enter>
-    {next ? (
-      <>
-        <Pill at={0.45} tilt={0} align="center">
-          Next · {next.code}
+    <div style={{ display: "flex", gap: 60, marginTop: 50 }}>
+      {cfg.outro.end.buttons.map((b, i) => (
+        <Pill key={b} at={0.5 + i * 0.2} tilt={0} size={50} tone={i === 0 ? "solid" : "paper"}>
+          {b}
         </Pill>
-        <Headline size={100} text={next.title} at={0.7} />
-      </>
-    ) : null}
-    <div style={{ display: "flex", gap: 70, marginTop: 70 }}>
-      <Pill at={1.0} tilt={0} size={42}>
-        Follow
-      </Pill>
-      <Pill at={1.15} tilt={0} size={42} tone="paper">
-        Save this
-      </Pill>
+      ))}
     </div>
-    <Note at={1.3}>Unofficial channel</Note>
+    <Note at={1}>{cfg.brand.disclaimer}</Note>
   </AbsoluteFill>
 );
 
+/** Cover image, the same layout in every episode: section and number, title, the intro question.
+ *  The negative Sequence offset shows every block in its finished, fully entered state. */
+const Thumb: React.FC<{ slug: string; code: string; label: string; tone: Tone; title: string; question: string }> = ({
+  slug,
+  code,
+  label,
+  tone,
+  title,
+  question,
+}) => (
+  <Sequence from={-90}>
+    <AbsoluteFill style={{ backgroundColor: COLORS.paper }}>
+      <Blobs seed={`${slug}-thumb`} />
+      <Dots />
+      <Header code={code} />
+      <AbsoluteFill
+        style={{ padding: `520px ${LAYOUT.side}px 0`, display: "flex", flexDirection: "column", gap: 44 }}
+      >
+        <Pill tone={tone} tilt={-4} size={46}>
+          {label}
+        </Pill>
+        <Headline size={questionSize(title) * 1.12}>{title}</Headline>
+        <Card tone="coral">
+          <Body size={40} color={COLORS.gray}>
+            {cfg.intro.pill}
+          </Body>
+          <div style={{ marginTop: 8 }}>
+            <Body size={58}>{question}</Body>
+          </div>
+        </Card>
+      </AbsoluteFill>
+    </AbsoluteFill>
+  </Sequence>
+);
+
 /**
- * Builds a whole episode in the house style.
+ * Builds a whole episode in the house style. The intro, outro, header and thumbnail
+ * are built in, so they are identical in every episode.
  *
- *   const ep = episode({ slug, code: "S1 · BAS · 02", durations, views, next });
- *   export const durationInFrames = ep.durationInFrames;
+ *   const ep = episode({
+ *     slug: "s1-bas-02", section: "BAS", number: 2, title: "Your first prompt",
+ *     durations,                              // durations.json: intro, ..., outro
+ *     intro: { question: "why your first prompt falls flat?" },
+ *     views: { s2: <>...</>, s3: <>...</> },  // every scene between intro and outro
+ *     outro: { hint: "What if Claude knew your whole situation?" },  // + optional peek: <>...</>
+ *   });
+ *   export const { durationInFrames, Thumbnail } = ep;
  *   export default ep.Component;
  *
- * `durations` is durations.json. `views` has one entry per scene id except "end",
- * which is always the end card. `voice: false` skips the voiceover (demo only).
+ * The outro is two scenes: "outro" teases the next video like a short intro (the hint, plus the
+ * optional `outro.peek` blocks), then "end" is the logo, follow and save frame. tts.py adds "end".
+ * The next episode is the same section, number + 1, unless `outro.next` says otherwise.
+ * `voice: false` skips the voiceover (demo only).
  */
 export const episode = (o: {
   slug: string;
-  code: string;
+  section: string;
+  number: number;
+  title: string;
   durations: Record<string, number>;
+  intro: { question: string; art?: React.ReactNode };
   views: Record<string, React.ReactNode>;
-  next?: { code: string; title: string };
+  outro: { hint: string; peek?: React.ReactNode; next?: { section: string; number: number } };
   voice?: boolean;
 }) => {
   const { scenes, totalFrames } = timeline(o.durations);
+  const ids = scenes.map((s) => s.id);
+  if (ids[0] !== "intro" || ids[ids.length - 2] !== "outro" || ids[ids.length - 1] !== "end") {
+    throw new Error(`${o.slug}: the first scene must be "intro" and the last two "outro" and "end" (re-run tts.py)`);
+  }
+  const code = episodeCode(o.section, o.number);
+  const next = o.outro.next ?? { section: o.section, number: o.number + 1 };
+  const tone = section(o.section).tone as Tone;
+  const label = sectionLabel(o.section, o.number);
+
   const Component: React.FC = () => (
     <AbsoluteFill style={{ backgroundColor: COLORS.paper }}>
       {o.voice === false ? null : <Audio src={staticFile(`${o.slug}/voiceover.wav`)} />}
@@ -880,16 +1004,32 @@ export const episode = (o: {
           <Blobs seed={`${o.slug}-${s.id}`} />
           <Dots />
           {s.id === "end" ? (
-            <EndCard next={o.next} />
+            <End />
           ) : (
             <>
-              <Header code={o.code} />
-              <Scene>{o.views[s.id]}</Scene>
+              <Header code={s.id === "outro" ? episodeCode(next.section, next.number) : code} />
+              <Scene>
+                {s.id === "intro" ? (
+                  <Intro question={o.intro.question} label={label} tone={tone} art={o.intro.art} />
+                ) : s.id === "outro" ? (
+                  <Teaser
+                    hint={o.outro.hint}
+                    label={sectionLabel(next.section, next.number)}
+                    tone={section(next.section).tone as Tone}
+                    peek={o.outro.peek}
+                  />
+                ) : (
+                  o.views[s.id]
+                )}
+              </Scene>
             </>
           )}
         </Sequence>
       ))}
     </AbsoluteFill>
   );
-  return { Component, durationInFrames: totalFrames };
+  const Thumbnail: React.FC = () => (
+    <Thumb slug={o.slug} code={code} label={label} tone={tone} title={o.title} question={o.intro.question} />
+  );
+  return { Component, Thumbnail, durationInFrames: totalFrames };
 };

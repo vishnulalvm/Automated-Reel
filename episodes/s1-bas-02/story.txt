@@ -1,0 +1,11 @@
+Section: Basics
+Episode: 2
+Title: Your first prompt
+Next: Giving Claude context about you and your situation, so answers fit you
+
+Story:
+- Most people's first prompt is a few words, like "write an email". Claude then has to guess the rest.
+- Better: brief Claude like a brilliant new teammate who knows nothing about your situation.
+- Tell it three things: who it is for, what you want, and what good looks like.
+- Example: "Write a short, friendly email to my landlord, asking to fix the heater this week."
+- Takeaway: clear beats clever.

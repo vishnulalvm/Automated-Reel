@@ -1,0 +1,108 @@
+{
+  "folders": {
+    "root": "/Users/anonymous/Desktop/Reel",
+    "input": "In put script",
+    "output": "Out put",
+    "assets": "Assets",
+    "archive": "Archive"
+  },
+  "brand": {
+    "name": "Claude4All",
+    "logo": "logo.png",
+    "disclaimer": "Unofficial channel",
+    "colors": {
+      "paper": "#F6F2EA",
+      "coral": "#E8674A",
+      "ink": "#14161C",
+      "green": "#1F9D6B",
+      "coralTint": "#F1CBBF",
+      "greenTint": "#D6E6DA",
+      "gray": "#5A5C63"
+    }
+  },
+  "series": {
+    "sections": [
+      {
+        "key": "BAS",
+        "name": "Basics",
+        "season": 1,
+        "tone": "green"
+      },
+      {
+        "key": "INT",
+        "name": "Intermediate",
+        "season": 2,
+        "tone": "coral"
+      },
+      {
+        "key": "ADV",
+        "name": "Advanced",
+        "season": 3,
+        "tone": "ink"
+      }
+    ]
+  },
+  "video": {
+    "minSeconds": 30,
+    "maxSeconds": 45,
+    "minScenes": 5,
+    "maxScenes": 8
+  },
+  "voice": {
+    "engine": "kokoro",
+    "kokoro": {
+      "voice": "af_heart",
+      "speed": 1.1,
+      "lang": "en-us"
+    },
+    "elevenlabs": {
+      "voiceId": "",
+      "model": "eleven_multilingual_v2"
+    },
+    "gapSeconds": 0.4,
+    "loudnessLufs": -16,
+    "pronounce": {
+      "Claude4All": "Claude for all"
+    }
+  },
+  "narration": {
+    "wordsPerSecond": 2.5,
+    "audience": "complete beginners; short everyday words, one idea per sentence, no jargon without a plain explanation",
+    "rules": [
+      "Speak to one person as 'you'.",
+      "One idea per scene, in one or two short sentences.",
+      "Give one concrete everyday example in every episode.",
+      "No hype words and no claims that cannot be sourced."
+    ]
+  },
+  "intro": {
+    "pill": "Do you know...",
+    "rule": "The intro scene is always one question the episode answers. The narration starts with 'Do you know' and the on-screen question completes the pill, in 8 words or fewer."
+  },
+  "outro": {
+    "pill": "Curious?",
+    "nextLabel": "Next",
+    "rule": "The outro is a short intro of the next video, not a sign-off. Its narration always starts with 'Curious', asks the question the next video answers and adds one small hint that makes the viewer want it, without giving the answer away: one or two sentences, 20 words or fewer. The on-screen hint is that question in 8 words or fewer. The scene may show a 'peek': one or two blocks that tease the next video.",
+    "end": {
+      "narration": "Follow Claude4All so you don't miss it, and save this one.",
+      "seconds": 2.5,
+      "buttons": [
+        "Follow",
+        "Save this"
+      ],
+      "rule": "The last frame is always the logo, the channel name and the follow and save buttons. tts.py adds it to every episode as scene 'end'; leave narration empty for a silent frame of 'seconds' length."
+    }
+  },
+  "thumbnail": {
+    "rule": "The thumbnail shows the section and episode number, the episode title in 5 words or fewer, and the intro question."
+  },
+  "caption": {
+    "maxHashtags": 5,
+    "hashtags": [
+      "#Claude",
+      "#ClaudeAI",
+      "#AItips",
+      "#LearnAI"
+    ]
+  }
+}

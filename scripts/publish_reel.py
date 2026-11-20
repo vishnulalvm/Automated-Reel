@@ -3,7 +3,9 @@
 Usage: .venv/bin/python scripts/publish_reel.py episodes/<slug>
 Refuses to run unless the episode folder has an APPROVED file.
 """
+import json
 import os
+import subprocess
 import sys
 import time
 
@@ -52,6 +54,9 @@ elif not new:
     print(f"Token refresh skipped: {r.text[:200]}", file=sys.stderr)
 
 video = f"{ep}/final.mp4"
+# cover frame: the end of the intro, when the whole question is on screen
+intro = json.load(open(f"{ep}/durations.json")).get("intro", 3)
+cover_ms = str(int(max(0, intro - 0.5) * 1000))
 caption = open(f"{ep}/caption.txt").read().strip()
 
 # 1. create a Reel container for a resumable upload (no public URL needed)
@@ -63,6 +68,7 @@ c = check(
             "upload_type": "resumable",
             "caption": caption,
             "share_to_feed": "true",
+            "thumb_offset": cover_ms,
             "access_token": TOKEN,
         },
         timeout=60,
@@ -109,3 +115,5 @@ p = check(
 )
 open(f"{ep}/PUBLISHED", "w").write(str(p))
 print("Published:", p)
+# move the delivered files to the output folder's Archive
+subprocess.run([sys.executable, f"{ROOT}/scripts/reel.py", "posted", ep], check=False)

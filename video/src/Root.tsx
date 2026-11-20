@@ -1,11 +1,11 @@
 import React from "react";
-import { Composition } from "remotion";
+import { Composition, Still } from "remotion";
 import { FPS, HEIGHT, WIDTH } from "./Brand";
 
-type SceneModule = { default: React.FC; durationInFrames: number };
+type SceneModule = { default: React.FC; durationInFrames: number; Thumbnail?: React.FC };
 
-// Every file in scenes/ becomes a composition named after the file
-// (scenes/s1-bas-02.tsx → `npx remotion render s1-bas-02 ...`). No edits here per episode.
+// Every file in scenes/ becomes a composition named after the file, plus a
+// "<name>-thumb" still for its cover image. No edits here per episode.
 const scenes = require.context("./scenes", false, /\.tsx$/);
 
 export const Root: React.FC = () => (
@@ -14,15 +14,17 @@ export const Root: React.FC = () => (
       const mod = scenes(key) as SceneModule;
       const id = key.replace(/^\.\//, "").replace(/\.tsx$/, "");
       return (
-        <Composition
-          key={id}
-          id={id}
-          component={mod.default}
-          durationInFrames={mod.durationInFrames}
-          fps={FPS}
-          width={WIDTH}
-          height={HEIGHT}
-        />
+        <React.Fragment key={id}>
+          <Composition
+            id={id}
+            component={mod.default}
+            durationInFrames={mod.durationInFrames}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+          {mod.Thumbnail ? <Still id={`${id}-thumb`} component={mod.Thumbnail} width={WIDTH} height={HEIGHT} /> : null}
+        </React.Fragment>
       );
     })}
   </>

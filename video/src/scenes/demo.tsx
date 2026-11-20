@@ -1,23 +1,20 @@
 // Reference episode: copy this structure for scenes/<slug>.tsx.
 // It shows every house-style block once. A real episode drops `voice: false`.
 import React from "react";
-import { Bars, Big, episode, Fact, Headline, IconChip, Note, Pill, Row, Stat, Window } from "../Brand";
+import { Bars, Big, episode, Fact, Headline, IconChip, Note, Pill, Prompt, Row, Stat, Step, Window } from "../Brand";
 
 const ep = episode({
   slug: "demo",
-  code: "S0 · DEMO · 00",
+  section: "BAS",
+  number: 0,
+  title: "How a reel is built",
   voice: false,
   // seconds per scene, gap included (the contents of episodes/<slug>/durations.json)
-  durations: { hook: 3, stat: 4, launch: 4, chart: 4, end: 3 },
-  next: { code: "S1 · BAS · 01", title: "Who built Claude?" },
+  durations: { intro: 3.5, stat: 4, launch: 4, steps: 4, chart: 4, outro: 3.5, end: 3 },
+  // the intro is built in: only the question changes
+  intro: { question: "how a scene is built?" },
   views: {
     // every `at` is seconds from the start of the scene: time each block to the narration
-    hook: (
-      <>
-        <Pill>Do you know...</Pill>
-        <Headline size={150} text="how a scene is built?" at={0.2} over={1} />
-      </>
-    ),
     stat: (
       <>
         <Headline text="One idea per scene." at={0.1} over={1} />
@@ -46,6 +43,18 @@ const ep = episode({
         </Row>
       </>
     ),
+    steps: (
+      <>
+        <Headline text="Lists and prompts" at={0.1} over={0.8} />
+        <Step n={1} at={0.8}>
+          Numbered points, one at a time
+        </Step>
+        <Step n={2} at={1.4} tone="coral">
+          The last one can be tinted
+        </Step>
+        <Prompt text="A prompt types itself in here." at={2} over={1.2} />
+      </>
+    ),
     chart: (
       <>
         <Pill>Numbers get a chart</Pill>
@@ -61,7 +70,10 @@ const ep = episode({
       </>
     ),
   },
+  // the outro is built in: a short intro of the next video, then the follow-and-save frame ("end").
+  // Only the hint changes; `peek` is an optional block or two that teases the next video.
+  outro: { hint: "What goes in the next one?", peek: <Prompt text="Next time, we start with..." at={1} over={1.2} /> },
 });
 
-export const durationInFrames = ep.durationInFrames;
+export const { durationInFrames, Thumbnail } = ep;
 export default ep.Component;
