@@ -1,0 +1,12 @@
+.env
+.venv/
+node_modules/
+video/out/
+video/public/*/
+scripts/*.onnx
+scripts/*.bin
+__pycache__/
+.DS_Store
+episodes/*/build.log
+episodes/*/publish.log
+logs/
